@@ -8,6 +8,9 @@ path, currentdir = os.path.split(os.path.dirname(inspect.getfile(inspect.current
 
 
 class Config():
+
+    QDEBUG = True
+
     FILES = dict(
         RAW_DATA = os.path.join("data", "raw"),
         PREPROCESS_DATA = os.path.join("data", "preprocess"),
