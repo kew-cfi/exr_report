@@ -26,7 +26,7 @@ def main(start_period: Any,
         try:
             print(f"  fetching data for country: {country}...")
             url = f"https://data-api.ecb.europa.eu/service/data/EXR/D.{country}.EUR.SP00.A"
-            temp_df = get_ecb_dataframe(url=url, param_grid=parameters)
+            temp_df = _get_ecb_dataframe(url=url, param_grid=parameters)
             df = pd.concat([df, temp_df])
         except:
             print(f"  fail to fetch data for country: {country}...")
@@ -35,7 +35,7 @@ def main(start_period: Any,
     df["ID"] = range(1, (len(df)+1))
     df = df.reset_index(drop=True)
 
-    df = assert_exr_columns_and_sort(df)
+    df = _assert_exr_columns_and_sort(df)
 
     if Config.QDEBUG:
         fname = os.path.join(Config.FILES["PREPROCESS_DATA"], "ecb_exchange_rate_{}.csv".format(end_period))
@@ -44,8 +44,8 @@ def main(start_period: Any,
     return df
 
 
-def get_ecb_dataframe(url: str, 
-                      param_grid: Dict[str, Any]) -> pd.DataFrame:
+def _get_ecb_dataframe(url: str, 
+                       param_grid: Dict[str, Any]) -> pd.DataFrame:
     """Based on ECB provided API, retrive data on the exchange rate of each currencies to the Euro.
     Convert retrieved data from ECB API to pandas dataframe.
 
@@ -76,12 +76,22 @@ def get_ecb_dataframe(url: str,
         return None
     
 
-def assert_exr_columns_and_sort(df):
+def _assert_exr_columns_and_sort(df: pd.DataFrame) -> pd.DataFrame:
+    """Based on the expected columns, assert the columns in the dataframe and sort the exchange rate columns.
+
+    Args:
+        df pd.DataFrame: Input dataframe of exchange rate data
+
+    Raises:
+        ValueError: if the columns in the dataframe is not as expected, raise error
+
+    Returns:
+        pd.DataFrame: Output dataframe of exchange rate data with sorted columns
+    """
     sort_columns = ["ID", "SOURCE", "ORIGIN_CURRENCY", "TARGET_CURRENCY", "EXCHANGE_RATE", "REPORT_DATE", "MODIFIED_DATE"]
 
     if all(col in df.columns for col in sort_columns):
         df = df[sort_columns]
     else:
         raise ValueError("Columns in dataframe is not as expected.")
-
     return df
