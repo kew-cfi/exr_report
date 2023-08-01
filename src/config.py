@@ -28,7 +28,7 @@ class Config():
             dict(var="KEY",             predictive=False),
             dict(var="FREQ",            predictive=False),
             dict(var="CURRENCY",        predictive=True ),
-            dict(var="CURRENCY_DENOM",  predictive=False),
+            dict(var="CURRENCY_DENOM",  predictive=True ),
             dict(var="EXR_TYPE",        predictive=False),
             dict(var="EXR_SUFFIX",      predictive=False),
             dict(var="TIME_PERIOD",     predictive=True ),
@@ -60,11 +60,20 @@ class Config():
         ]
     )
 
+    _RENAME_COLUMNS = OrderedDict(
+        EXR = {
+            "CURRENCY"          : "ORIGIN_CURRENCY",
+            "CURRENCY_DENOM"    : "TARGET_CURRENCY",
+            "OBS_VALUE"         : "EXCHANGE_RATE",
+            "TIME_PERIOD"       : "REPORT_DATE",
+        }
+    )
+
 
     @staticmethod
     def vars(types: List[str]=[], 
             wc_vars: List[str]=[], 
-            qreturn_dict: Any=False):
+            qreturn_dict: Any=True):
             """ Return list of variable names
             
             Acquire the right features from dataframe to be input into model.  
@@ -77,7 +86,7 @@ class Config():
             wc_vars : List[str]
                 Wildcard variables to be included.  If empty, all variables will be included.
             qreturn_dict : Any
-                If True, return a list of dictionaries with variable name and other attributes.  If False, return a list of variable names.
+                If True, return a list of dictionaries with variable name and other attributes.  If True, return a list of variable names.
 
             Returns
             -------

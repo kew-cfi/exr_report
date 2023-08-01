@@ -31,7 +31,11 @@ def main(start_period: Any,
         except:
             print(f"  fail to fetch data for country: {country}...")
 
+    df = df.rename(columns=Config._RENAME_COLUMNS["EXR"])
+    df["ID"] = range(1, (len(df)+1))
     df = df.reset_index(drop=True)
+
+    df = assert_exr_columns_and_sort(df)
 
     if Config.QDEBUG:
         fname = os.path.join(Config.FILES["PREPROCESS_DATA"], "ecb_exchange_rate_{}.csv".format(end_period))
@@ -63,8 +67,21 @@ def get_ecb_dataframe(url: str,
         data = None
 
     if data is not None:
-        df = pd.read_csv(io.StringIO(data.text), parse_dates=["TIME_PERIOD"]) # , index_col="TIME_PERIOD"
+        df = pd.read_csv(io.StringIO(data.text), parse_dates=["TIME_PERIOD"])
         df = df[df["TIME_PERIOD"]==df["TIME_PERIOD"].max()][Config.vars(types=["EXR"], wc_vars=df.columns, qreturn_dict=False)]
+        df["MODIFIED_DATE"] = dt.date.today().strftime("%Y-%m-%d")
+        df["SOURCE"] = "ECB"
         return df
     else:
         return None
+    
+
+def assert_exr_columns_and_sort(df):
+    sort_columns = ["ID", "SOURCE", "ORIGIN_CURRENCY", "TARGET_CURRENCY", "EXCHANGE_RATE", "REPORT_DATE", "MODIFIED_DATE"]
+
+    if all(col in df.columns for col in sort_columns):
+        df = df[sort_columns]
+    else:
+        raise ValueError("Columns in dataframe is not as expected.")
+
+    return df
